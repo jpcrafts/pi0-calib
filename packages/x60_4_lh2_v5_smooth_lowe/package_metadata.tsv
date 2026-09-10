@@ -1,0 +1,15 @@
+key	value
+schema_version	3
+kinematic	x60_4_lh2
+target	LH2
+baseline	hao_pi0_db
+run_count	124
+period_count	3
+seed_damping	0.75
+lowe_damping	0.75
+lowe_scope	global
+lowe_profile	smoothstep
+lowe_full_until	0.8
+lowe_unity_at	0.9
+approval_status	validated
+release_name	x60_4_lh2_v5_smooth_lowe

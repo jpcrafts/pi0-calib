@@ -1,0 +1,13 @@
+# Copy this file outside the repository before editing it:
+#   mkdir -p ~/.config/nps_pi0_calibration
+#   cp pipeline/config/db_environment.example \
+#      ~/.config/nps_pi0_calibration/env.sh
+#   chmod 600 ~/.config/nps_pi0_calibration/env.sh
+#
+# Obtain the current read-only `dvcs` database password from the NPS
+# calibration/replay maintainer. Never commit the completed private copy.
+
+export NPS_DB_HOST="jmysql.jlab.org"
+export NPS_DB_NAME="nps"
+export NPS_DB_USER="dvcs"
+export MYSQL_PWD="REPLACE_WITH_COLLABORATION_DB_PASSWORD"

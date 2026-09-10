@@ -1,0 +1,4 @@
+profile	period	source_scope	full_until_gev	unity_at_gev	applied_amplitude
+smoothstep	lh2_cycle12	global	0.8	0.9	1.0019606234145795
+smoothstep	lh2_cycle34	global	0.8	0.9	1.0019606234145795
+smoothstep	lh2_cycle56	global	0.8	0.9	1.0019606234145795

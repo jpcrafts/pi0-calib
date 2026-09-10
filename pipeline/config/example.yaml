@@ -1,0 +1,81 @@
+schema_version: 1
+
+kinematic:
+  name: replace_with_kinematic_name
+  target: LH2
+  baseline: hao_pi0_db
+  input_mode: hao_production
+  description: "Residual Pi0 calibration starting from CALO_calib_Pi0Coef"
+
+# The password is never stored here. Supply MYSQL_PWD or DB_PASS privately.
+database:
+  host: jmysql.jlab.org
+  name: nps
+  user: dvcs
+
+paths:
+  run_manifest: ${PI0_WORK}/runs.txt
+  segment_manifest: ${PI0_WORK}/segments.tsv
+  hao_production_root_dir: ${HAO_ROOT_DIR}
+  auxiliary_raw_wf_dir: ${RAW_WF_ROOT_DIR}
+  db_snapshot_dir: ${PI0_WORK}/db_snapshots
+  member_dir: ${PI0_WORK}/members
+  member_source_dirs:
+    - ${PI0_WORK}/members
+  production_pair_dir: ${PI0_WORK}/pairs
+  work_dir: ${PI0_WORK}/calibration
+  corrected_root_dir: ${PI0_WORK}/corrected_roots
+
+# Replace with target-pure chronological periods. Every run must occur once.
+periods:
+  - name: period1
+    runs: [1001, 1002]
+  - name: period2
+    runs: [1003, 1004]
+
+selection:
+  exact_clusters: 2
+  timing_center_ns: 0.0
+  timing_half_window_ns: 1.0
+  min_photon_energy_gev: 0.6
+  max_photon_energy_gev: 2.5
+  pi0_mass_mev: 134.9766
+
+fit:
+  min_entries: 500
+  min_photon_cell_entries: 500
+  max_mu_error_mev: 0.50
+  warn_chi2_ndf: 3.0
+  max_window_shift_mev: 0.50
+
+run_scale:
+  damping: 1.0
+  max_update_fraction: 0.02
+  support_max_adjacent_gap: 5
+  support_max_run_distance: 8
+  support_max_members: 9
+  run_own_max_mu_error_mev: 0.20
+  support_shrink_tau_mev: 0.25
+  one_sided_support_weight: 0.50
+  excluded_calibration_runs: []
+
+seed:
+  damping: 0.75
+  min_events: 200
+  shrink_events: 400
+  max_update_fraction: 0.01
+  identity_columns: [0, 1, 2]
+
+low_energy:
+  scope: period
+  damping: 0.75
+  range_gev: [0.6, 0.9]
+  max_update_fraction: 0.03
+  profile: smoothstep
+  full_until_gev: 0.8
+  unity_at_gev: 0.9
+
+execution:
+  conversion_workers: 4
+  max_pair_member_join_loss_fraction: 0.001
+  production_validation_runs: [1001, 1003]

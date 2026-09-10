@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nps-pi0-calibration"
+version = "0.1.0"
+description = "Derive, validate, and apply NPS Pi0 cluster-energy calibration packages"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+derive = [
+  "numpy>=1.23",
+  "scipy>=1.9",
+  "matplotlib>=3.4",
+  "PyYAML>=5.4",
+]
+
+[project.scripts]
+nps-pi0-correct = "nps_pi0_calibration.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

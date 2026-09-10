@@ -7,8 +7,14 @@ name = "nps-pi0-calibration"
 version = "0.1.0"
 description = "Derive, validate, and apply NPS Pi0 cluster-energy calibration packages"
 readme = "README.md"
+license = {file = "LICENSE"}
 requires-python = ">=3.9"
 dependencies = []
+classifiers = [
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+]
 
 [project.optional-dependencies]
 derive = [

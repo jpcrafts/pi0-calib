@@ -195,13 +195,6 @@ Derivation outputs include fit tables and PDFs. Every production fit still
 requires visual inspection before package promotion. Numerical fit status
 alone is insufficient.
 
-## Publication
+## License
 
-This directory is self-contained and can become a separate repository with:
-
-```bash
-git subtree split --prefix portable -b portable-release
-```
-
-Select a license and review collaboration-release policy before making a
-public GitHub repository.
+This project is distributed under the [BSD 3-Clause License](LICENSE).

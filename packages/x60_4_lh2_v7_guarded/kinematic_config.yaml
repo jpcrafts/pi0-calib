@@ -1,0 +1,77 @@
+schema_version: 1
+kinematic:
+  name: x60_4_lh2
+  target: LH2
+  baseline: hao_pi0_db
+  description: x60_4 LH2 guarded Hao-start stack with rederived seed and smooth low-energy
+    closure
+paths:
+  run_manifest: manifests/hao_start_lh2_safe_member_sidecars_706_runs.txt
+  member_source_dirs:
+  - /work/hallc/nps/jpcrafts/farm_output/raw_wf_pair_sample/raw_wf_x60_4a2_4b_member_sidecars_workers4
+  production_pair_dir: /work/hallc/nps/jpcrafts/ROOTfiles/pi_0_calib/production_replay_validation/hao_direct_runscale_d075_vs_d100_fullstat_v1/pairs/hao_db
+  work_dir: output/kinematic_calibrations/x60_4_lh2
+periods:
+- name: lh2_cycle12
+  run_min: 4253
+  run_max: 4308
+- name: lh2_cycle34
+  run_min: 4309
+  run_max: 4404
+- name: lh2_cycle56
+  run_min: 4405
+  run_max: 4566
+selection:
+  exact_clusters: 2
+  timing_center_ns: -0.213982
+  timing_half_window_ns: 1.0
+  min_photon_energy_gev: 0.6
+  max_photon_energy_gev: 2.5
+  pi0_mass_mev: 134.9766
+fit:
+  min_entries: 500
+  min_photon_cell_entries: 500
+  max_mu_error_mev: 0.5
+  warn_chi2_ndf: 3.0
+  max_window_shift_mev: 0.5
+run_scale:
+  damping: 1.0
+  max_update_fraction: 0.03
+  support_max_adjacent_gap: 5
+  support_max_run_distance: 8
+  support_max_members: 9
+  run_own_max_mu_error_mev: 0.2
+  support_shrink_tau_mev: 0.25
+  one_sided_support_weight: 0.5
+  excluded_calibration_runs:
+  - 4552
+seed:
+  damping: 0.75
+  min_events: 200
+  shrink_events: 400
+  max_update_fraction: 0.01
+  identity_columns:
+  - 0
+  - 1
+  - 2
+low_energy:
+  scope: global
+  damping: 1.0
+  range_gev:
+  - 0.6
+  - 1.0
+  profile: smoothstep
+  full_until_gev: 0.8
+  unity_at_gev: 1.0
+  max_update_fraction: 0.012
+energy_application:
+  policy: total_log_smoothstep_2p0_2p5_v1
+  full_until_gev: 2.0
+  unity_at_gev: 2.5
+execution:
+  conversion_workers: 4
+  production_validation_runs:
+  - 4267
+  - 4349
+  - 4558
+  - 4562

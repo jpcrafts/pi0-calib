@@ -135,6 +135,15 @@ overwrite an existing release.
 
 ## ROOT Application Contract
 
+- Upper-energy policy is `total_log_smoothstep_2p0_2p5_v1`: original Hao cluster
+  E >= 2.5 GeV is copied exactly, all scales unity, no curve evaluation.
+- Between 2 and 2.5 GeV taper ALL layers in log scale to identity, not just
+  the curve. Store applied factors so component closure remains true.
+- Use each cluster's own uncorrected Hao energy; never veto its whole event.
+- The included x60_4 v7 release has passed held-out, production-transfer, and
+  real-writer parity validation under this policy. Historical v5 approval
+  predates the guard and does not approve changed application.
+
 The application stage must process every event and every cluster, regardless
 of whether the event passes Pi0 cuts. It must:
 
@@ -205,6 +214,7 @@ Before accepting a code change:
 - `pipeline/extract_inputs.py`: pair and exact member/seed extraction.
 - `pipeline/derive/run_kinematic_calibration.py`: central derivation driver.
 - `pipeline/promote_package.py`: reviewed immutable release creation.
+- `pipeline/make_energy_guard_candidate.py`: immutable diagnostic copy for upper-energy guard review.
 - `pipeline/apply_dataset.py`: segment-parallel ROOT application.
 - `pipeline/build_swif_json.py`: SWIF2 extraction/application manifests.
 - `src/nps_pi0_calibration/`: frozen-package loader and correction API.

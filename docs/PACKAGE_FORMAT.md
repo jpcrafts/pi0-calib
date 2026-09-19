@@ -67,3 +67,13 @@ load time. The manifest does not list itself.
 `CALO_calib_Pi0Coef`. Applying this package to elastic-calibrated or raw
 amplitudes is invalid. Package factors are residual corrections, not absolute
 ADC-to-energy coefficients.
+
+## Upper-Energy Application Policy
+
+New packages record `energy_application_policy=total_log_smoothstep_2p0_2p5_v1`.
+This guards the TOTAL residual stack, independent of curve-knot extent.
+Original Hao E >= 2.5 GeV stays exactly unchanged. Between 2 and 2.5 GeV
+each layer's applied factor is raised to the cubic smoothstep weight described
+in `METHOD.md`. ROOT metadata records the policy, boundaries and cluster counts.
+Older tables can be loaded for diagnostics but their old approval is not valid
+for production with changed energy support; a new reviewed successor is required.

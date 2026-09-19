@@ -15,6 +15,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "src"))
 from nps_pi0_calibration import FrozenCalibration  # noqa: E402
+from nps_pi0_calibration.calibration import ENERGY_POLICY  # noqa: E402
 
 
 def read_metadata(path: Path) -> list[dict[str, str]]:
@@ -69,6 +70,8 @@ def main() -> int:
     if not args.approved_by.strip() or not args.note.strip():
         parser.error("approval identity and note must be non-empty")
     calibration = FrozenCalibration.load(candidate)
+    if calibration.metadata.get("energy_application_policy") != ENERGY_POLICY:
+        parser.error("candidate must declare the current upper-energy policy before review/promotion")
     if calibration.metadata.get("approval_status", "unreviewed") == "validated":
         parser.error("candidate is already validated")
     if output.exists():

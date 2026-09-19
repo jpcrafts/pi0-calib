@@ -10,6 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from nps_pi0_calibration import FrozenCalibration  # noqa: E402
+from nps_pi0_calibration.calibration import ENERGY_POLICY  # noqa: E402
 
 
 def quote_root(value: Path) -> str:
@@ -56,6 +57,8 @@ def main() -> int:
     if args.output_root.exists():
         args.output_root.unlink()
     calibration = FrozenCalibration.load(args.package)
+    if calibration.metadata.get("energy_application_policy") != ENERGY_POLICY and not args.allow_unvalidated:
+        parser.error("package predates the upper-energy guard; reviewed successor required")
     approval = calibration.metadata.get("approval_status", "unreviewed")
     if approval != "validated" and not args.allow_unvalidated:
         parser.error(

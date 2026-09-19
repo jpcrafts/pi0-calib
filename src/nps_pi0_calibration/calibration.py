@@ -9,6 +9,19 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+ENERGY_POLICY = "total_log_smoothstep_2p0_2p5_v1"
+
+
+def upper_energy_weight(energy_gev: float) -> float:
+    """Application guard, evaluated on original Hao cluster energy, not pair energy."""
+    if energy_gev >= 2.5:
+        return 0.0
+    if energy_gev <= 2.0:
+        return 1.0
+    t = (energy_gev - 2.0) / 0.5
+    return (1.0 - t) ** 2 * (1.0 + 2.0 * t)
+
+
 class CalibrationError(RuntimeError):
     """Package or application input violates the calibration contract."""
 
@@ -164,6 +177,8 @@ class FrozenCalibration:
         self.tilt_unity_at = float(row.get("unity_at_gev", "0.9"))
 
     def _validate(self) -> None:
+        if self.metadata.get("energy_application_policy", ENERGY_POLICY) != ENERGY_POLICY:
+            raise CalibrationError("unsupported energy application policy")
         try:
             schema_version = int(self.metadata["schema_version"])
         except (KeyError, ValueError) as error:
@@ -281,15 +296,27 @@ class FrozenCalibration:
         if missing_seed not in {"identity", "error"}:
             raise CalibrationError(f"invalid missing-seed policy: {missing_seed}")
         period = self.run_period[run]
-        curve = self._curve_scale(period, energy_gev)
-        run_scale = self.run_scales[run]
         if seed_block is None or seed_block not in self.seed_scales:
             if missing_seed == "error":
                 raise CalibrationError(f"seed block {seed_block} lacks supported correction")
             seed = 1.0
         else:
             seed = self.seed_scales[seed_block]
-        lowe = self._lowe_scale(period, energy_gev)
+        weight = upper_energy_weight(energy_gev)
+        if weight == 0.0:
+            # Do not evaluate/extrapolate any correction outside the allowed range.
+            curve = run_scale = seed = lowe = 1.0
+        else:
+            curve = self._curve_scale(period, energy_gev)
+            run_scale = self.run_scales[run]
+            lowe = self._lowe_scale(period, energy_gev)
+            if any(not math.isfinite(s) or s <= 0.0 for s in (curve, run_scale, seed, lowe)):
+                raise CalibrationError("invalid correction component")
+            if weight != 1.0:
+                # Taper every layer; their stored product remains the applied scale.
+                curve, run_scale, seed, lowe = (
+                    s**weight for s in (curve, run_scale, seed, lowe)
+                )
         total = curve * run_scale * seed * lowe
         if not math.isfinite(total) or total <= 0.0:
             raise CalibrationError("computed non-finite or non-positive total scale")

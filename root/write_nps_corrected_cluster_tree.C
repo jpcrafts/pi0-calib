@@ -24,6 +24,14 @@
 #include <vector>
 
 namespace {
+// Guard the entire residual stack using original Hao cluster energy.
+double upper_energy_weight(double energy) {
+  if (energy >= 2.5) return 0.0;
+  if (energy <= 2.0) return 1.0;
+  const double t = (energy - 2.0) / 0.5;
+  return (1.0 - t) * (1.0 - t) * (1.0 + 2.0 * t);
+}
+
 constexpr int kNCols = 30;
 constexpr int kNRows = 36;
 constexpr double kBlockSizeCm = 2.15;
@@ -81,6 +89,7 @@ struct FrozenPackage {
   std::map<int, double> seed_scale;
   std::string kinematic;
   std::string target;
+  std::string energy_application_policy;
   std::string approval_status = "unreviewed";
   std::string lowe_scope = "global";
   std::string lowe_profile = "hard_window";
@@ -105,6 +114,7 @@ FrozenPackage load_package(const std::string &directory) {
     const std::string value = row.at("value");
     if (key == "kinematic") package.kinematic = value;
     else if (key == "target") package.target = value;
+    else if (key == "energy_application_policy") package.energy_application_policy = value;
     else if (key == "approval_status") package.approval_status = value;
     else if (key == "lowe_damping") package.lowe_damping = std::stod(value);
     else if (key == "lowe_scope") package.lowe_scope = value;
@@ -304,6 +314,8 @@ void write_nps_corrected_cluster_tree(
   std::map<std::pair<Long64_t, int>, int> sidecar_seed;
   try {
     package = load_package(package_dir);
+    if (package.energy_application_policy != "total_log_smoothstep_2p0_2p5_v1" && !allow_unvalidated)
+      throw std::runtime_error("package predates the upper-energy guard; use a reviewed successor or diagnostic override");
     if (package.approval_status != "validated" && !allow_unvalidated)
       throw std::runtime_error(
           "package approval_status is " + package.approval_status);
@@ -365,6 +377,7 @@ void write_nps_corrected_cluster_tree(
   int run = 0;
   Long64_t missing_seed_total = 0, exact_seed_total = 0, centroid_seed_total = 0;
   Long64_t identity_seed_total = 0, failed_scale_total = 0;
+  Long64_t high_energy_identity_total = 0, high_energy_taper_total = 0;
   Long64_t invalid_cluster_vectors_total = 0, missing_run_scale_total = 0;
   std::vector<double> final_e, total_scale, curve_component, run_component, seed_component, lowe_component;
   std::vector<int> seed_block, seed_source;
@@ -397,6 +410,8 @@ void write_nps_corrected_cluster_tree(
     }
 
     for (size_t cluster = 0; cluster < clusters; ++cluster) {
+      const double energy = clusE->at(cluster);
+      if (!std::isfinite(energy) || energy < 0.0) { ++failed_scale_total; continue; }
       const auto sidecar_it = sidecar_seed.find({entry, static_cast<int>(cluster)});
       int seed = -1;
       if (sidecar_it != sidecar_seed.end()) {
@@ -412,11 +427,26 @@ void write_nps_corrected_cluster_tree(
         ++missing_seed_total; continue;
       }
       seed_block[cluster] = seed;
-      const double c = curve_scale(package, run, clusE->at(cluster));
-      const double r = run_it->second;
+      const double weight = upper_energy_weight(energy);
+      if (weight == 0.0) {
+        // final_e is the original copy and all component scales remain exactly one.
+        ++high_energy_identity_total;
+        continue;
+      }
+      double c = curve_scale(package, run, energy);
+      double r = run_it->second;
       const auto seed_it = package.seed_scale.find(seed);
-      const double s = seed_it == package.seed_scale.end() ? 1.0 : seed_it->second;
-      const double l = lowe_scale(package, run, clusE->at(cluster));
+      double s = seed_it == package.seed_scale.end() ? 1.0 : seed_it->second;
+      double l = lowe_scale(package, run, energy);
+      if (!std::isfinite(c) || c <= 0.0 || !std::isfinite(r) || r <= 0.0 ||
+          !std::isfinite(s) || s <= 0.0 || !std::isfinite(l) || l <= 0.0) {
+        ++failed_scale_total; continue;
+      }
+      if (weight != 1.0) {
+        c = std::pow(c, weight); r = std::pow(r, weight);
+        s = std::pow(s, weight); l = std::pow(l, weight);
+        ++high_energy_taper_total;
+      }
       const double scale = c * r * s * l;
       if (!std::isfinite(scale) || scale <= 0.0) { ++failed_scale_total; continue; }
       curve_component[cluster] = c; run_component[cluster] = r; seed_component[cluster] = s;
@@ -427,6 +457,13 @@ void write_nps_corrected_cluster_tree(
 
   tree->Write();
   TTree metadata("hao_final_metadata", "frozen Hao-start calibration writer metadata");
+  std::string metadata_energy_policy = "total_log_smoothstep_2p0_2p5_v1";
+  double metadata_energy_full_until = 2.0, metadata_energy_unity_at = 2.5;
+  metadata.Branch("energy_application_policy", &metadata_energy_policy);
+  metadata.Branch("energy_full_until_gev", &metadata_energy_full_until, "energy_full_until_gev/D");
+  metadata.Branch("energy_unity_at_gev", &metadata_energy_unity_at, "energy_unity_at_gev/D");
+  metadata.Branch("high_energy_identity_clusters", &high_energy_identity_total, "high_energy_identity_clusters/L");
+  metadata.Branch("high_energy_taper_clusters", &high_energy_taper_total, "high_energy_taper_clusters/L");
   std::string metadata_input(input_root), metadata_package(package_dir), metadata_sidecar(sidecar_tsv ? sidecar_tsv : "");
   std::string metadata_kinematic = package.kinematic, metadata_target = package.target;
   std::string metadata_approval_status = package.approval_status;
@@ -467,6 +504,8 @@ void write_nps_corrected_cluster_tree(
             << "\nexact_seed_clusters " << exact_seed_total
             << "\ncentroid_seed_clusters " << centroid_seed_total << "\nmissing_seed_clusters " << missing_seed_total
             << "\nidentity_seed_clusters " << identity_seed_total
+            << "\nhigh_energy_identity_clusters " << high_energy_identity_total
+            << "\nhigh_energy_taper_clusters " << high_energy_taper_total
             << "\nfailed_scale_clusters " << failed_scale_total
             << "\ninvalid_cluster_vector_events " << invalid_cluster_vectors_total
             << "\nmissing_run_scale_events " << missing_run_scale_total << "\n";

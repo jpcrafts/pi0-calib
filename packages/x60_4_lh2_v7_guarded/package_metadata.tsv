@@ -1,0 +1,23 @@
+key	value
+schema_version	3
+energy_application_policy	total_log_smoothstep_2p0_2p5_v1
+energy_full_until_gev	2.0
+energy_unity_at_gev	2.5
+kinematic	x60_4_lh2
+target	LH2
+baseline	hao_pi0_db
+config_source	/u/group/nps/jpcrafts/Pi_0/pi_0_calib/kinematic_configs/x60_4_lh2_guarded_v7.yaml
+config_source_sha256	44355b6bbd18403b49dc88188fee2fee6b59587979928204eff3ec225276b924
+run_count	124
+period_count	3
+seed_damping	0.75
+lowe_damping	1.0
+lowe_scope	global
+lowe_profile	smoothstep
+lowe_full_until	0.8
+lowe_unity_at	1.0
+approval_status	validated
+approved_by	jpcrafts
+approval_note	Selected guarded x60_4 stack after held-out low-energy, four-run taper-transfer, and exact-seed writer parity validation.
+approval_utc	2026-09-19T20:27:37.427140+00:00
+candidate_source	/u/group/nps/jpcrafts/Pi_0/pi_0_calib/output/x60_4_partial_68/hao_final_production_package_db_v7_guarded_rederived

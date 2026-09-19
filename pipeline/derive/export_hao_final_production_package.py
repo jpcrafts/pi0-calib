@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import math
 import shutil
 from collections import Counter
 from pathlib import Path
@@ -150,18 +151,42 @@ def main() -> int:
             )
 
     lowe_profile = str(config["low_energy"].get("profile", "hard_window"))
-    lowe_full_until = float(config["low_energy"].get("full_until_gev", selected_lowe[0]["emax"]))
-    lowe_unity_at = float(config["low_energy"].get("unity_at_gev", selected_lowe[0]["emax"]))
-    lowe_min = float(selected_lowe[0]["emin"])
-    lowe_max = float(selected_lowe[0]["emax"])
+    configured_lowe_min, configured_lowe_max = [
+        float(value) for value in config["low_energy"]["range_gev"]
+    ]
+    lowe_full_until = float(config["low_energy"].get("full_until_gev", configured_lowe_max))
+    lowe_unity_at = float(config["low_energy"].get("unity_at_gev", configured_lowe_max))
+    source_lowe_min = float(selected_lowe[0]["emin"])
+    source_lowe_max = float(selected_lowe[0]["emax"])
     if lowe_profile not in {"hard_window", "smoothstep"}:
         raise RuntimeError(f"unsupported low-E profile: {lowe_profile}")
-    if lowe_profile == "smoothstep" and not (
-        lowe_min <= lowe_full_until < lowe_unity_at <= lowe_max
-    ):
-        raise RuntimeError("smooth low-E profile must satisfy emin <= full_until < unity_at <= emax")
+    if lowe_profile == "smoothstep":
+        if not (
+            configured_lowe_min <= lowe_full_until < lowe_unity_at <= configured_lowe_max
+        ):
+            raise RuntimeError(
+                "smooth low-E profile must satisfy configured emin <= full_until < unity_at <= emax"
+            )
+        if not math.isclose(source_lowe_min, configured_lowe_min, abs_tol=1.0e-12):
+            raise RuntimeError("low-E source and configured lower bounds differ")
+        if source_lowe_max > lowe_full_until + 1.0e-12:
+            raise RuntimeError("low-E fit support extends beyond the full-strength profile range")
+        packaged_lowe_rows = read_tsv(args.output_dir / "lowe_photon_scale.tsv")
+        for row in packaged_lowe_rows:
+            if row.get("fold") == "full_sample":
+                row["emax"] = f"{lowe_unity_at:.17g}"
+        write_tsv(args.output_dir / "lowe_photon_scale.tsv", packaged_lowe_rows)
+        for row in manifest:
+            if row["file"] == "lowe_photon_scale.tsv":
+                target = args.output_dir / "lowe_photon_scale.tsv"
+                row["bytes"] = target.stat().st_size
+                row["sha256"] = sha256(target)
+                break
     metadata = [
         {"key": "schema_version", "value": 3},
+        {"key": "energy_application_policy", "value": "total_log_smoothstep_2p0_2p5_v1"},
+        {"key": "energy_full_until_gev", "value": 2.0},
+        {"key": "energy_unity_at_gev", "value": 2.5},
         {"key": "kinematic", "value": config["kinematic"]["name"]},
         {"key": "target", "value": config["kinematic"]["target"]},
         {"key": "baseline", "value": config["kinematic"]["baseline"]},
@@ -200,7 +225,7 @@ def main() -> int:
         "  E2 = E1 * run_scalar(run)",
         "  E3 = E2 * seed_block_scale(seed_block)",
         f"  E_final = E3 * lowe_photon_scale({lowe_scope}) when E_Hao is in "
-        f"{float(selected_lowe[0]['emin']):g}-{float(selected_lowe[0]['emax']):g} GeV",
+        f"{configured_lowe_min:g}-{configured_lowe_max:g} GeV",
         f"  Low-E profile: {lowe_profile}; full through {lowe_full_until:g} GeV; "
         f"unity at {lowe_unity_at:g} GeV.",
         "",
@@ -210,6 +235,8 @@ def main() -> int:
         "  Run scalar uses own-run Gaussian fit when accepted; weak runs use existing chronological support policy.",
         "  Seed columns 0-2 remain identity/QA when unsupported.",
         "  Member/hybrid residual layer is not included.",
+        "  The entire correction stack tapers from full strength at 2.0 GeV to identity at 2.5 GeV.",
+        "  Original Hao cluster energies at or above 2.5 GeV are copied unchanged.",
         "  All mass peak means and sigmas used in derivation/QA come from canonical Gaussian+linear-background fits.",
         "",
         f"Run LUT rows: {len(run_rows)}",

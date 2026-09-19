@@ -21,13 +21,14 @@ import run_pipeline  # noqa: E402
 
 class PipelineContractTest(unittest.TestCase):
     def test_promotion_copies_and_approves_without_mutating_candidate(self) -> None:
-        source = Path(__file__).resolve().parents[1] / "packages" / "x60_4_lh2_v5_smooth_lowe"
+        source = Path(__file__).resolve().parents[1] / "packages" / "x60_4_lh2_v7_guarded"
         with tempfile.TemporaryDirectory() as text:
             base = Path(text)
             candidate, release = base / "candidate", base / "release"
             shutil.copytree(source, candidate)
             rows = promote_package.read_metadata(candidate / "package_metadata.tsv")
             promote_package.set_metadata(rows, "approval_status", "diagnostic_unreviewed")
+            promote_package.set_metadata(rows, "energy_application_policy", promote_package.ENERGY_POLICY)
             promote_package.write_metadata(candidate / "package_metadata.tsv", rows)
             promote_package.write_manifest(candidate)
             result = subprocess.run(

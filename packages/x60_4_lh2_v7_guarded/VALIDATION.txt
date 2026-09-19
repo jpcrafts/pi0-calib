@@ -1,0 +1,39 @@
+x60_4 LH2 guarded package validation
+Date: 2026-09-19
+
+Selected numerical layers:
+- guarded period photon curve
+- chronology-aware full-damping run scalar with the 4414 support split
+- rederived seed-block residual at damping 0.75; columns 0-2 remain identity
+- global low-energy photon factor 1.006912979820296 at damping 1.00
+- low-energy factor is full through 0.8 GeV and tapers smoothly to unity at 1.0 GeV
+- member/hybrid residual layer is not included
+
+Upper-energy application policy:
+- full correction through 2.0 GeV
+- entire correction stack tapers smoothly to identity from 2.0 to 2.5 GeV
+- original Hao cluster energy is copied exactly at and above 2.5 GeV
+
+Held-out segment-parity validation (1,943,027 events):
+- seed-only pooled fit residual/sigma: +0.0044 / 4.2169 MeV
+- final low-E pooled fit residual/sigma: +0.1259 / 4.2082 MeV
+- final 0.6-0.8 GeV fit residual/sigma: -0.1391 / 4.9959 MeV
+- final 0.8-1.0 GeV fit residual/sigma: -0.0921 / 4.5662 MeV
+Source: ../upper_energy_guard_validation_v1/guard25_run_scale_supportsplit_clip3_seed_d075_smooth_lowe_scan/
+
+Four-run production-transfer taper validation (runs 4300, 4417, 4503, 4562):
+- final pooled fit residual/sigma: +0.2942 / 4.3059 MeV
+- final 0.6-0.8 GeV fit residual/sigma: +0.0168 / 5.1132 MeV
+- 2.0-2.5 GeV-partner category fit residual/sigma: +0.0695 / 3.9985 MeV
+- low-E plus partner above 2.0 GeV fit residual/sigma: +0.9134 / 4.7748 MeV
+- partner at or above 2.5 GeV fit residual/sigma: +1.3235 / 4.0345 MeV
+The last two rows are a documented consequence of preserving unsupported high-energy
+clusters rather than extrapolating the calibration beyond 2.5 GeV.
+Source: ../hao_final_production_package_db_v7_guarded_rederived_validation/taper_start_scan_4runs/
+
+Real writer smoke, run 4300 segment 0, first 10,000 events:
+- original branch/schema parity: PASS
+- component factorization closure: PASS, zero mismatches
+- exact sidecar seeds: 4,752 clusters; no fallback or missing seeds
+- high-energy identity: 209 clusters; zero policy violations
+Source: ../hao_final_production_package_db_v7_guarded_rederived_validation/writer_smoke_run4300/

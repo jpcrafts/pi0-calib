@@ -39,7 +39,22 @@ E_corrected = E * C_period(period(run), E)
 `C_period` is fitted from photon-energy cells within each configured
 chronological period. The frozen package stores energy knots in log-scale
 space. Application linearly interpolates log scale, then exponentiates it.
-Endpoint values are held constant outside the knot range.
+Endpoint values are held constant outside the knot range only where application
+is allowed by the upper-energy guard below. Stored high-energy knots are not
+evidence of high-energy validation.
+
+### Upper-energy application guard
+
+The total factor above is now applied as `S_applied = S**w(E)`, with
+`w=1` through 2 GeV, `w=1-3t^2+2t^3` for `t=(E-2)/0.5` between 2 and
+2.5 GeV, and `w=0` at/above 2.5 GeV. The last case copies the original
+energy without evaluating any correction. `E` is the original Hao energy
+of each cluster, never `min_pair_E` or a previously corrected energy.
+
+All layers are tapered, including run and seed factors. Stored component
+branches contain the **applied** factors `C_layer**w`; their product is still
+the total applied scale. This is a smooth boundary condition, not a newly
+derived high-energy response. It requires fresh validation before promotion.
 
 ### Run scalar
 

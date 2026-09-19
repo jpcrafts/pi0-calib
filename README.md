@@ -17,20 +17,48 @@ Two paths are included:
 A package remains valid only for its named kinematic, target, baseline energy
 definition, and explicit run list.
 
-Current included package:
+Included packages:
 
-- `packages/x60_4_lh2_v5_smooth_lowe`: validated x60_4 LH2 correction starting
-  from Hao's `CALO_calib_Pi0Coef` cluster energies.
+- `packages/x60_4_lh2_v7_guarded`: validated x60_4 LH2 release starting from
+  Hao's `CALO_calib_Pi0Coef` cluster energies. It contains the guarded curve,
+  chronology-aware run scalar, seed residual, smooth low-energy residual, and
+  the approved upper-energy application policy.
+- `packages/x60_4_lh2_v5_smooth_lowe`: historical provenance only. Do not use
+  it for new production because its original writer applied unsupported
+  corrections above `2.5 GeV`.
+
+### Upper-Energy Safety Fix
+
+The current API and both writers guard the entire correction using each
+cluster's **original Hao energy**, not pair energy:
+
+- `E <= 2.0 GeV`: unchanged correction below the upper transition.
+- `2.0 < E < 2.5 GeV`: smooth log-scale taper of every component toward unity.
+- `E >= 2.5 GeV`: copy the original energy exactly; every scale is exactly one.
+
+The policy is validated for the included v7 x60_4 package. Existing ROOT files
+are not repaired automatically. For an older or newly derived package, create
+and validate a separate candidate before promotion:
+
+```bash
+python3 pipeline/make_energy_guard_candidate.py \
+  --source-package packages/x60_4_lh2_v5_smooth_lowe \
+  --output-package work/upper_energy_guard_candidate
+```
+
+Use `--allow-unvalidated` only for diagnostic ROOT application. Validate mass
+fits, energy-bin closure, missing mass and selection migration before promotion.
 
 The correction acts on every cluster, independent of whether an event is later
 identified as a Pi0:
 
 ```text
-E_corrected = E_input * C_period(E_input)
-                      * C_run
-                      * C_seed
-                      * C_lowE(E_input)
+S = C_period(E_input) * C_run * C_seed * C_lowE(E_input)
+E_corrected = E_input * S**w(E_input)
 ```
+
+Here `w=1` below 2 GeV, `w=1-3t^2+2t^3` for `t=(E_input-2)/0.5`
+between 2 and 2.5 GeV, and `w=0` at/above 2.5 GeV (explicit copy, no extrapolation).
 
 The Pi0 sample derives and validates the factors; it is not an application
 gate.
@@ -88,7 +116,7 @@ and seed block:
 
 ```bash
 nps-pi0-correct \
-  --package packages/x60_4_lh2_v5_smooth_lowe \
+  --package packages/x60_4_lh2_v7_guarded \
   --input examples/clusters.tsv \
   --output corrected_clusters.tsv
 ```
@@ -113,7 +141,7 @@ the spatial layer while all non-spatial factors still apply. Use
 ```python
 from nps_pi0_calibration import FrozenCalibration
 
-calibration = FrozenCalibration.load("packages/x60_4_lh2_v5_smooth_lowe")
+calibration = FrozenCalibration.load("packages/x60_4_lh2_v7_guarded")
 result = calibration.correct(run=4253, energy_gev=0.75, seed_block=523)
 print(result.corrected_energy_gev)
 print(result.total_scale)
@@ -128,7 +156,7 @@ adds corrected cluster vectors:
 python3 root/apply_root.py \
   --input-root nps_production_4253_0_wf_calib.root \
   --output-root corrected_4253_0.root \
-  --package packages/x60_4_lh2_v5_smooth_lowe \
+  --package packages/x60_4_lh2_v7_guarded \
   --run 4253 --segment 0 \
   --sidecar nps_production_4253_0_wf_calib.production_members.tsv
 ```
@@ -173,7 +201,7 @@ approximate.
 ```bash
 python3 -m unittest discover -s tests -v
 python3 -m nps_pi0_calibration.cli \
-  --package packages/x60_4_lh2_v5_smooth_lowe \
+  --package packages/x60_4_lh2_v7_guarded \
   --input examples/clusters.tsv --output /tmp/corrected.tsv
 ```
 

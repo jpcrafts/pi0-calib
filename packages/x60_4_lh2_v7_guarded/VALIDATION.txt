@@ -1,6 +1,21 @@
 x60_4 LH2 guarded package validation
 Date: 2026-09-19
 
+FINAL STATUS: QUARANTINED AFTER FULL-STAT AUDIT (2026-09-20)
+Do not use this package for production.
+
+Full-stat completed-writer audit (706 files):
+- Hao fixed-selection fitted mean/sigma: 134.1961 / 4.2922 MeV
+- v7 fixed-selection fitted mean/sigma: 134.3594 / 4.0549 MeV
+- v7 fitted residual from PDG: -0.6172 MeV
+- v7 corrected-selection fitted mean/sigma: 134.3488 / 4.0634 MeV
+- v7 energy-bin fitted residuals (MeV):
+  0.6-0.8: -1.0074; 0.8-1.0: -0.7890; 1.0-1.2: -0.7968;
+  1.2-1.5: -0.5946; 1.5-2.0: -0.3294; 2.0-2.5: +0.4931.
+- Writer structure, factorization, and >=2.5 GeV identity checks passed.
+- Physics closure failed: the stack is broadly undercorrected below 2.0 GeV.
+Source: completed_writer_v7_guarded_full_audit and its v5_v7_comparison.
+
 Selected numerical layers:
 - guarded period photon curve
 - chronology-aware full-damping run scalar with the 4414 support split

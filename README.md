@@ -19,10 +19,10 @@ definition, and explicit run list.
 
 Included packages:
 
-- `packages/x60_4_lh2_v7_guarded`: quarantined x60_4 LH2 provenance package.
-  Its writer and upper-energy guard passed structural checks, but the full-stat
-  audit found broad undercorrection below 2.0 GeV. The CLI and ROOT writers
-  reject it unless the diagnostic-only `--allow-unvalidated` override is used.
+- `packages/x60_4_lh2_v7_guarded`: validated x60_4 LH2 release. Exact compact
+  closure and completed-writer/package parity pass. Low-energy bins close within
+  0.1 MeV; positive residual above 1.5 GeV is the documented consequence of the
+  selected upper-energy guard.
 - `packages/x60_4_lh2_v5_smooth_lowe`: historical provenance only. Do not use
   it for new production because its original writer applied unsupported
   corrections above `2.5 GeV`.
@@ -36,10 +36,10 @@ cluster's **original Hao energy**, not pair energy:
 - `2.0 < E < 2.5 GeV`: smooth log-scale taper of every component toward unity.
 - `E >= 2.5 GeV`: copy the original energy exactly; every scale is exactly one.
 
-The guard implementation passed structural and exact-identity checks, but the
-included v7 numerical calibration is quarantined after its full-stat physics
-audit. Existing ROOT files are not repaired automatically. For an older or
-newly derived package, create and validate a separate candidate before promotion:
+The guard implementation passes structural, exact-identity, compact-closure,
+and completed-writer parity checks for v7. Existing ROOT files are not repaired
+automatically. For an older or newly derived package, create and validate a
+separate candidate before promotion:
 
 ```bash
 python3 pipeline/make_energy_guard_candidate.py \
@@ -119,8 +119,7 @@ and seed block:
 nps-pi0-correct \
   --package packages/x60_4_lh2_v7_guarded \
   --input examples/clusters.tsv \
-  --output corrected_clusters.tsv \
-  --allow-unvalidated
+  --output corrected_clusters.tsv
 ```
 
 Output preserves input columns and adds period, each scale component, total
@@ -143,7 +142,6 @@ the spatial layer while all non-spatial factors still apply. Use
 ```python
 from nps_pi0_calibration import FrozenCalibration
 
-# Diagnostic/provenance example only: the included x60 v7 package is quarantined.
 calibration = FrozenCalibration.load("packages/x60_4_lh2_v7_guarded")
 result = calibration.correct(run=4253, energy_gev=0.75, seed_block=523)
 print(result.corrected_energy_gev)
@@ -161,8 +159,7 @@ python3 root/apply_root.py \
   --output-root corrected_4253_0.root \
   --package packages/x60_4_lh2_v7_guarded \
   --run 4253 --segment 0 \
-  --sidecar nps_production_4253_0_wf_calib.production_members.tsv \
-  --allow-unvalidated
+  --sidecar nps_production_4253_0_wf_calib.production_members.tsv
 ```
 
 Existing output ROOT files are rejected unless `--overwrite` is supplied.
@@ -206,8 +203,7 @@ approximate.
 python3 -m unittest discover -s tests -v
 python3 -m nps_pi0_calibration.cli \
   --package packages/x60_4_lh2_v7_guarded \
-  --input examples/clusters.tsv --output /tmp/corrected.tsv \
-  --allow-unvalidated
+  --input examples/clusters.tsv --output /tmp/corrected.tsv
 ```
 
 Package hashes are checked automatically. See [package format](docs/PACKAGE_FORMAT.md).

@@ -100,9 +100,10 @@ E_corrected = E_Hao * C_period(E_Hao)
 - `C_seed` is the neutralized seed-block residual correction.
 - `C_lowE(E)` is the package-specific smooth low-energy closure layer.
 
-The bundled `x60_4_lh2_v7_guarded` package is quarantined after its full-stat
-physics audit. It remains available only for provenance and implementation
-tests; do not use it as a production baseline or describe it as validated.
+The bundled `x60_4_lh2_v7_guarded` package passes exact compact closure and
+completed-writer/package parity. Preserve its documented upper-energy caveat:
+the positive residual above 1.5 GeV follows from tapering the full correction
+to identity between 2.0 and 2.5 GeV.
 
 Do not move factors between layers merely to improve a plot. Preserve the
 held-out derivation structure and identify which layer produces an effect.

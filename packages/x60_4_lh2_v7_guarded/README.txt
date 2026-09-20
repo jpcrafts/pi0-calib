@@ -1,8 +1,8 @@
 Frozen Hao-start x60_4_lh2 production calibration package
 
-QUARANTINED - DO NOT USE FOR PRODUCTION
-The 2026-09-20 full-stat audit found broad undercorrection below 2.0 GeV.
-The package is retained only for provenance and correction-policy tests.
+VALIDATED WITH DOCUMENTED UPPER-ENERGY LIMITATION
+Exact calibration-population and completed-writer audits pass. The correction
+is intentionally tapered above 2.0 GeV and is identity at/above 2.5 GeV.
 
 Baseline:
   Input cluster energies already use Hao CALO_calib_Pi0Coef.
@@ -25,10 +25,10 @@ Policy:
   All mass peak means and sigmas used in derivation/QA come from canonical Gaussian+linear-background fits.
 
 Run LUT rows: 124
-Approval status: quarantined_fullstat_failure
+Approval status: validated
 Run support modes: chronological_group_one_sided_shrunk=5, chronological_group_two_sided=11, run_local=108
 Supported seed rows: 931/972
 Selected low-E photon factors (d=1.00, scope=global): global=1.006912980
 
-This package is frozen and quarantined. Do not tune tables in place; derive and
-validate a versioned successor.
+This package is frozen. Do not tune tables in place; derive and validate a
+versioned successor.

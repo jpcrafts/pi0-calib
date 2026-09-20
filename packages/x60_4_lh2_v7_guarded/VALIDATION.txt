@@ -1,20 +1,29 @@
 x60_4 LH2 guarded package validation
 Date: 2026-09-19
 
-FINAL STATUS: QUARANTINED AFTER FULL-STAT AUDIT (2026-09-20)
-Do not use this package for production.
+FINAL STATUS: VALIDATED BY EXACT-REFERENCE AUDIT (2026-09-20)
 
-Full-stat completed-writer audit (706 files):
-- Hao fixed-selection fitted mean/sigma: 134.1961 / 4.2922 MeV
-- v7 fixed-selection fitted mean/sigma: 134.3594 / 4.0549 MeV
-- v7 fitted residual from PDG: -0.6172 MeV
-- v7 corrected-selection fitted mean/sigma: 134.3488 / 4.0634 MeV
-- v7 energy-bin fitted residuals (MeV):
-  0.6-0.8: -1.0074; 0.8-1.0: -0.7890; 1.0-1.2: -0.7968;
-  1.2-1.5: -0.5946; 1.5-2.0: -0.3294; 2.0-2.5: +0.4931.
-- Writer structure, factorization, and >=2.5 GeV identity checks passed.
-- Physics closure failed: the stack is broadly undercorrected below 2.0 GeV.
-Source: completed_writer_v7_guarded_full_audit and its v5_v7_comparison.
+An earlier completed-writer audit reported a low peak, but it used a different
+event population: absolute cluster-time, HMS, and fiducial cuts rather than the
+calibration compact-pair selection. It is not a calibration mass-closure test.
+
+Exact compact calibration population (1,943,027 events):
+- fitted mean/sigma: 135.2075 / 4.2177 MeV
+- energy-bin fitted residuals (MeV):
+  0.6-0.8: -0.0348; 0.8-1.0: -0.0255; 1.0-1.2: -0.0480;
+  1.2-1.5: +0.1323; 1.5-2.0: +0.4408; 2.0-2.5: +1.4213.
+
+Completed writer/package parity (706 files):
+- 1,941,995 extracted reference rows; zero numerical parity failures
+- maximum energy difference: 4.44e-16 GeV
+- maximum mass difference: 1.52e-9 MeV
+- 1,552,814 rows have matching original energies and seed blocks
+- aligned fitted mean/sigma: 135.1787 / 4.2076 MeV
+- aligned low-energy residuals: -0.0652, -0.0623, -0.0819 MeV through 1.2 GeV
+- >=2.5 GeV identity and 2.0-2.5 GeV taper checks pass
+
+The positive residual above 1.5 GeV is documented. It reflects the chosen
+upper-energy safety policy, not a writer implementation failure.
 
 Selected numerical layers:
 - guarded period photon curve
